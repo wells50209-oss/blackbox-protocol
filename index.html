@@ -3,7 +3,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>黑箱協議 BLACKBOX PROTOCOL</title>
 <meta name="description" content="6 人心理戰策略遊戲：不完全資訊、交易、承諾與背叛。">
-<meta name="theme-color" content="#2E3FA3">
+<meta name="theme-color" content="#17212B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="黑箱協議">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -111,6 +118,12 @@ button:hover:not(:disabled){border-color:var(--ink)}button:focus-visible{outline
 .mode h2{font-size:20px}.mode p{font-size:14px}
 @media (orientation:landscape) and (max-height:540px){.mode{padding:10px 14px}.mode h2{font-size:17px}.modes{gap:8px;grid-template-columns:1fr 1fr}}
 .intro header.stack{flex-direction:column;align-items:flex-start;gap:2px}
+.modal{position:fixed;inset:0;background:rgba(10,14,20,.55);display:flex;align-items:center;justify-content:center;padding:12px;z-index:20}
+.dialog{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--accent);width:100%;max-width:520px;max-height:100%;padding:16px 18px}
+.stars{display:flex;gap:6px}.stars button{font-size:24px;line-height:1;padding:6px 10px;color:var(--gold)}
+.dialog textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);resize:vertical}
+@media (orientation:landscape) and (max-height:540px){.dialog{padding:10px 14px}.dialog textarea{min-height:0;height:64px}.stars button{font-size:20px;padding:3px 8px}}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mu);margin-top:8px}.dialog .note{color:var(--danger);font-size:13px;margin-top:8px}
 </style></head><body><div id="app"></div>
 <script>
 const K={"ROUNDS": 8, "COLLECT_STREAK_MAX": 5, "COLLECT_BAN": 2, "CHAIN_N": 3, "CHAIN_MAX_RES": 10, "CHAIN_BONUS": 2, "HUNT_COUNT_FROM": 3, "HUNT_HITS": 3, "ATK_LOSS": 4, "INCITE_USES": 3, "FORCE_USES": 1, "EXPLORER_P": 0.5, "PROPHET_LAST": 5, "BROKER_MAX": 3, "CAP_RPV": 4.5, "HUNTER_KILL_VP": 3.5, "DBL_MAX": 2, "DBL_EACH": 6.25, "SMUGGLER_MAX": 4, "SMUGGLE_VP": 1.75, "GOALS_PER_GAME": 6, "MERCH_N": 8, "TOUGH_N": 1, "AVENG_N": 1, "HONOR_PROM": 6, "AVENG_REGAIN": 4, "HERMIT_RES": 10, "HERMIT_THR": 1, "GAMB_SPENT": 4, "GAMB_HITS": 2, "MANIP_N": 2, "MANIP_TIP": 1, "KILL_VP": 3.5, "GUARD_BONUS": 1, "GUARD_STACK": false, "GUARD_DEF_W": 1.5, "CAP_DEF_FROM": 99, "CAP_BLEND": 0.5, "CAP_PROFILE": [4, 1, 1, 1.5, 1.5, 0.5], "CAP_GOAL": 15, "BOOST_HUNTER": 1, "BOOST_MAX": 2, "RES_PER_VP": 4, "PROM_ROUNDS": 1, "HUNTER_CHEAP_FROM": 5, "GUARD_PROG_VP": 0.5, "GUARD_PROG_CAP": 3, "DBL_PLAN_P": 0.12, "DEFEND_BONUS": 2, "INFO_VP": 0.3, "CRED_KEEP": 1, "BROKER_GAIN": 4, "INFO_VP_OBS": 0.2, "INFO_VP_EXPLORER": 0.3, "HUNTER_EARLY_BOOST": 2, "HUNTER_EARLY_UNTIL": 4, "HUNTER_HIT_RES": 0, "ATK_GAIN": 2, "ATK_FAIL_PEN": 0},GL={"hunter": ["獵殺者", "淘汰 1 人，或成功命中（未被擋下，第3回合起計）3 次（第4回合後攻擊只花1AP、第1～4回合備戰上限2、之後1）；每擊殺一人 3.5 VP"], "guard": ["守護者", "指定玩家活到最後；他每次被攻擊的回合你都必須防禦(並為其防禦+1)；只有他實際被打中且你沒防禦才算失敗；每成功擋下一次對被守護者的攻擊 +1 守護進度（每點 +0.5 VP，最多 3 點）；被守護者沒被攻擊也算達成"], "cap": ["資本家", "結束時資源 ≥15（能力：每次採集額外+0.5資源；資源換 VP 為每 4.5 資源 1 VP）"], "manip": ["操盤手", "2 名玩家因你的交易/情報而出手攻擊（能力：強制交易1次，付3換5，對方不能拒絕；挑撥3次，讓對方對你指定的玩家記仇）"], "dbl": ["雙面人", "背叛口頭承諾，最多計 2 次，每次 +6.25 VP（不必存活；承諾持續1回合；背叛信用損失-1）"], "obs": ["觀察者", "持有 6 張≥3星情報，或 4 張≥4星(含5星)情報；持有情報每張只算 0.2 VP"], "honor": ["守約者", "簽下至少 6 份承諾（對方付你資源、你保證不攻擊），且全程沒有背叛過任何一份"], "avenge": ["復仇者", "成功反擊「曾攻擊過你」的玩家至少 1 次；每次成功反擊拿回 4 資源"], "merch": ["商人", "累計進行 8 次交易行動"], "tough": ["倖存者", "被成功攻擊至少 1 次，仍存活到最後"], "hermit": ["隱士", "全程從未攻擊，最終威脅 ≤1、資源 ≥10，且存活"], "gamble": ["賭徒", "累計備戰花費 ≥4 資源，且成功命中至少 2 次"], "strategist": ["軍師", "每局一次，回合開始可額外 +1 AP（當回合 4 AP，不可累積；不降低獵殺者攻擊所需 AP）"], "broker": ["情報商", "每回合一次（不耗 AP）把一張情報賣給指定玩家：買方付 2 資源並取得該情報，你獲得 4 資源、失去該情報；買方可拒絕；整局最多 3 次"], "speculator": ["投機者", "第1回合 +1 資源；第5回合只有第 1 次探索 +1 資源；第6回合採集不受減益"], "explorer": ["探勘者", "每次探索有 50% 機率額外獲得 1 資源（不耗 AP）；情報值只計算自己探索或交易取得的情報，每張 0.3 VP"], "smuggler": ["走私客", "交易行動多了「走私」選項：把 3 張情報換成 1.75 VP，整局最多 4 次"], "prophet": ["預言家", "每回合可預測 2 名不同玩家「本回合」是否攻擊；每猜中 1 名 +1 VP（預言 VP 沒有總上限），猜錯不扣分；第 5 回合後不能再預測"]},EV=["資源繁榮：採集 +1", "情報洩漏：所有人獲得2張公共情報（兩張內容不會相同）", "市場波動：本回合起可淘汰玩家", "信任危機：背叛信用損失加重", "黑市：探索時額外獲得 1 張情報（仍只花 1 AP）", "資源短缺：採集收益降低", "全面恐慌：所有威脅 +1", "最終結算"],GV={"hunter": 8.5, "guard": 9.5, "cap": 7.5, "manip": 9, "obs": 8.5, "honor": 9, "avenge": 9, "merch": 8.5, "tough": 8, "hermit": 8.5, "gamble": 9, "strategist": 7.5, "broker": 6.5, "speculator": 7.25, "explorer": 7, "smuggler": 5, "prophet": 7},ABIL=["strategist", "broker", "speculator", "explorer", "smuggler", "prophet"];
@@ -247,8 +260,39 @@ function prog(p){const o={hunter:`命中 ${p.ghits}/${K.HUNT_HITS}（擊殺 ${p.
  hermit:`已攻擊 ${p.atkN} 次（需0）、威脅 ${p.thr}（≤${K.HERMIT_THR}）、資源 ${p.res}（≥${K.HERMIT_RES}）`,gamble:`備戰花費 ${p.bspent}/${K.GAMB_SPENT}、命中 ${p.hits}/${K.GAMB_HITS}`,obs:`≥3星 ${nC(p,3)}/6 或 ≥4星 ${nC(p,4)}/4`,
  strategist:p.stru?'額外AP已使用':'額外AP尚未使用',broker:`已賣情報 ${p.buse}/${K.BROKER_MAX}`,speculator:'依事件多得資源',explorer:`探索有 ${K.EXPLORER_P*100}% 機率+1資源`,smuggler:`走私 ${p.suse}/${K.SMUGGLER_MAX}（持有情報 ${p.hand.length} 張，需3張）`,prophet:`預言得分 ${p.pvp} VP`};return o[p.goal]}
 const bar=(l,v,m)=>`<div class="b"><b>${l}</b><i style="width:${Math.min(v,m)/m*140}px"></i><span>${v}</span></div>`;
-const UI={screen:'guide',gtab:'tips',tab:'act',rtab:'players',goalOpen:false,openGoal:null};
-function startGame(pick){init(pick);UI.tab='act';UI.goalOpen=false;UI.openGoal=null;UI.screen='game';render()}
+/* ===== 給作者的回饋 =====
+   把 Google 表單的「預先填入連結」貼在下面引號裡（題目順序：評分、意見、本局摘要），回饋就會送到你的表單。
+   留空時，回饋按鈕會提示「作者尚未設定回饋表單」。 */
+const FEEDBACK_PREFILL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLScvv3X7kmPLS5zsLr_xJCpWozskGWLctC3dftbKtrdtMOrzwg/viewform?usp=pp_url&entry.731967552=5&entry.1107555110=2&entry.1236427872=3';
+const GAME_VERSION = 'v1.0';
+function fbConfig(){try{if(!FEEDBACK_PREFILL_LINK)return null;const u=new URL(FEEDBACK_PREFILL_LINK);const ids=[...u.searchParams.keys()].filter(k=>/^entry\.\d+$/.test(k));
+ if(ids.length<2)return null;return{action:u.origin+u.pathname.replace(/\/viewform.*$/,'/formResponse'),rating:ids[0],comment:ids[1],summary:ids[2]||null}}catch(e){return null}}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function gameSummary(){const m=me(),rk=G.P.slice().sort((x,y)=>vp(y)-vp(x)||y.res-x.res||y.cred-x.cred),pn=m.predN;
+ return [`版本 ${GAME_VERSION}｜${UI.mode||'隨機'}模式`,`目標 ${GL[m.goal][0]}（${gok(m)?'達成':'未達成'}）｜第 ${rk.indexOf(m)+1} 名｜${vp(m)} VP｜${m.alive?'存活':'被淘汰'}`,
+  `行動 ${AC.map((n,k)=>n+m.hh.reduce((s,h)=>s+h[k],0)).join(' ')}｜預測 ${pn} 次，中 ${m.predOk+m.pvp} 次`,`裝置 ${innerWidth}×${innerHeight}｜${new Date().toISOString().slice(0,16).replace('T',' ')}`].join('\n')}
+function fbOpen(){UI.fb={rating:0,text:'',attach:true,state:'edit',msg:''};render()}
+function fbClose(){UI.fb=null;render()}
+function fbRate(n){UI.fb.rating=n;render()}
+async function fbSend(){const f=UI.fb,c=fbConfig();if(!f||f.state=='sending'||f.state=='sent')return;
+ if(!f.rating&&!f.text.trim()){f.msg='請至少給一個評分或寫幾句意見。';render();return}
+ if(!c){f.msg='作者尚未設定回饋表單，暫時無法送出。';render();return}
+ if(!navigator.onLine){f.msg='目前沒有網路，請連上網路後再送出。';render();return}
+ f.state='sending';f.msg='';render();
+ const body=new URLSearchParams();body.append(c.rating,f.rating?String(f.rating):'');body.append(c.comment,f.text.trim().slice(0,2000));if(c.summary&&f.attach)body.append(c.summary,gameSummary());
+ try{await fetch(c.action,{method:'POST',mode:'no-cors',body});f.state='sent'}catch(e){f.state='edit';f.msg='送出失敗，請檢查網路後再試一次。'}render()}
+function fbHTML(){const f=UI.fb;if(!f)return'';
+ if(f.state=='sent')return `<div class="modal" role="dialog" aria-modal="true" aria-label="給作者的回饋"><div class="dialog"><h2>謝謝你的回饋！</h2><p style="margin:8px 0 14px">作者會看到你的評分和意見。</p><div class="foot"><span></span><button class="primary" onclick="fbClose()">關閉</button></div></div></div>`;
+ return `<div class="modal" role="dialog" aria-modal="true" aria-label="給作者的回饋"><div class="dialog scroll"><h2>給作者的回饋</h2>
+ <p class="hint" style="margin:4px 0 10px">你的意見會直接送給作者，不會公開。</p>
+ <p style="font-weight:600;margin-bottom:4px">這局玩起來如何？</p><div class="stars">${[1,2,3,4,5].map(n=>`<button aria-label="${n} 星" aria-pressed="${f.rating>=n}" onclick="fbRate(${n})">${f.rating>=n?'★':'☆'}</button>`).join('')}</div>
+ <label for="fbt" style="display:block;font-weight:600;margin:10px 0 4px">想對作者說的話（選填）</label>
+ <textarea id="fbt" maxlength="2000" rows="4" placeholder="例如：哪裡好玩、哪裡看不懂、哪個目標太強或太弱、遇到的錯誤……" oninput="UI.fb.text=this.value">${esc(f.text)}</textarea>
+ <label class="chk"><input type="checkbox" ${f.attach?'checked':''} onchange="UI.fb.attach=this.checked"> 附上本局摘要（隱藏目標、名次、VP、行動次數，不含個人資料）</label>
+ ${f.msg?`<p class="note">${esc(f.msg)}</p>`:''}
+ <div class="foot" style="margin-top:12px"><button class="ghost" onclick="fbClose()">取消</button><button class="primary" ${f.state=='sending'?'disabled':''} onclick="fbSend()">${f.state=='sending'?'送出中…':'送出回饋'}</button></div></div></div>`}
+const UI={screen:'guide',gtab:'tips',tab:'act',rtab:'players',goalOpen:false,openGoal:null,fb:null,mode:'隨機'};
+function startGame(pick){UI.mode=pick?'選擇':'隨機';UI.fb=null;init(pick);UI.tab='act';UI.goalOpen=false;UI.openGoal=null;UI.screen='game';render()}
 function toggleGoal(k){UI.openGoal=UI.openGoal==k?null:k;render()}
 function goalCards(pickMode){return `<div class="goals">${Object.keys(GL).map(k=>{const open=UI.openGoal==k;return `<article class="gc ${open?'open':''}"><button class="gch" aria-expanded="${open}" onclick="toggleGoal('${k}')"><span><b>${GL[k][0]}</b> <small>${GTYPE[k]||''}</small></span><small>${k=='dbl'?K.DBL_EACH+' VP／次':(GV[k]||8)+' VP'}　${open?'收合':'點開看能力'}</small></button>${open?`<div class="gcb"><p>${GL[k][1]}</p>${pickMode?`<button class="primary" onclick="startGame('${k}')">以「${GL[k][0]}」開始遊戲</button>`:''}</div>`:''}</article>`}).join('')}</div>`}
 function modeHTML(){return `<div class="intro"><header><h1>黑箱協議</h1><span class="rd">選擇模式</span></header>
@@ -288,7 +332,7 @@ function render(){const m=me(),a=document.getElementById('app');
   <div class="over"><section class="panel scroll"><h2>排名</h2><table class="rank"><thead><tr><th>名次</th><th>玩家</th><th>隱藏目標</th><th class="num">VP</th></tr></thead><tbody>
   ${rk.map((p,i)=>`<tr class="${p.i==0?'me':''}"><td>${i+1}</td><td>${p.n}${p.alive?'':'（淘汰）'}<small>${p.sty}</small></td><td>${GL[p.goal][0]} ${gok(p)?'✔ 達成':'✘ 未達成'}</td><td class="num">${vp(p)}</td></tr>`).join('')}</tbody></table></section>
   <section class="panel scroll"><h2>賽後回顧</h2><p>你的行動：${AC.map((n,k)=>n+' '+m.hh.reduce((s,h)=>s+h[k],0)).join('，')}</p><p>預測 ${pn} 次，正確 ${m.predOk+m.pvp} 次${pn?`（${Math.round((m.predOk+m.pvp)/pn*100)}%）`:''}</p><p>你的目標：${GL[m.goal][0]}——${GL[m.goal][1]}</p><p class="hint" style="margin-top:6px">如果你常直接攻擊風險星級最高的人，可能是在「照星級行動」；星級只是系統估計。</p>
-  <div class="foot" style="margin-top:12px"><button class="ghost" onclick="go('guide')">看規則</button><button class="primary" onclick="go('mode')">再玩一局</button></div></section></div></div>`;return}
+  <div class="foot" style="margin-top:12px"><button class="ghost" onclick="go('guide')">看規則</button><button class="ghost" onclick="fbOpen()">給作者回饋</button><button class="primary" onclick="go('mode')">再玩一局</button></div></section></div></div>${fbHTML()}`;return}
  if(G.phase!='act')UI.tab='act';
  const pd=G.pend,cancel=`<button class="ghost" onclick="G.pend=null;render()">取消</button>`;
  const targets=()=>al().filter(p=>p.i&&!(pd&&pd.k=='inc'&&p.i==pd.t)).map(p=>`<button onclick="tg(${p.i})">${p.n}</button>`).join('')+cancel;
@@ -325,4 +369,6 @@ function render(){const m=me(),a=document.getElementById('app');
   <div class="right ${UI.tab!='act'?'show':''}"><section class="panel rpanel"><div class="rtabs">${RT.map(([k,n])=>`<button aria-pressed="${UI.rtab==k}" onclick="setTab('${k}')">${n}</button>`).join('')}</div><div class="rview scroll">${views[UI.rtab]}</div></section></div></div>
   <nav class="mtabs">${[['act','行動']].concat(RT).map(([k,n])=>`<button aria-pressed="${UI.tab==k}" onclick="setTab('${k}')">${n}${k=='log'&&G.log.length?'':''}</button>`).join('')}</nav></div>`}
 init();
+
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
 </script></body></html>
