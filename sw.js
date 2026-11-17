@@ -1,6 +1,6 @@
 // 黑箱協議離線快取：第一次開啟後，沒有網路也能玩。
 // 更新遊戲時把 VERSION 改掉（例如 v2），玩家下次開啟會自動換成新版。
-const VERSION = 'blackbox-v3';
+const VERSION = 'blackbox-v6';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 
