@@ -1,8 +1,9 @@
 {
   "name": "黑箱協議 BLACKBOX PROTOCOL",
   "short_name": "黑箱協議",
-  "description": "6 人心理戰策略遊戲：不完全資訊、交易、承諾與背叛。",
+  "description": "免費線上心理戰策略遊戲：1 名玩家對上 5 名 AI，靠交易、承諾、背叛與情報爭取最高分。",
   "lang": "zh-Hant",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -10,8 +11,8 @@
   "background_color": "#010204",
   "theme_color": "#17212B",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
